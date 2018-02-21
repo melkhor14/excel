@@ -29,6 +29,11 @@ class ExcelReader implements CountableReader, \SeekableIterator
     /**
      * @var integer
      */
+    protected $maxColumns;
+
+    /**
+     * @var integer
+     */
     protected $pointer = 0;
 
     /**
@@ -49,8 +54,9 @@ class ExcelReader implements CountableReader, \SeekableIterator
      * @param integer        $activeSheet     Index of active sheet to read from
      * @param boolean        $readOnly        If set to false, the reader take care of the excel formatting (slow)
      * @param integer        $maxRows         Maximum number of rows to read
+     * @param integer        $maxColumns      Maximum number of columns
      */
-    public function __construct(\SplFileObject $file, $headerRowNumber = null, $activeSheet = null, $readOnly = true, $maxRows = null)
+    public function __construct(\SplFileObject $file, $headerRowNumber = null, $activeSheet = null, $readOnly = true, $maxRows = null, $maxColumns = null)
     {
         $excel = \PhpOffice\PhpSpreadsheet\IOFactory::load($file->getPathName());
 
@@ -70,6 +76,7 @@ class ExcelReader implements CountableReader, \SeekableIterator
             $this->setHeaderRowNumber($headerRowNumber);
         }
 
+        $this->maxColumns = $maxColumns;
     }
 
     /**
@@ -82,6 +89,7 @@ class ExcelReader implements CountableReader, \SeekableIterator
     public function current()
     {
         $row = $this->worksheet[$this->pointer];
+        if($this->maxColumns) $row = array_splice($row, 0, $this->maxColumns);
 
         // If the CSV has column headers, use them to construct an associative
         // array for the columns in this line
